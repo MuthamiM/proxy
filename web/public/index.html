@@ -1,0 +1,593 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SPY | Proxy Architecture</title>
+  <link rel="stylesheet" href="/style.css">
+  <link rel="icon" type="image/png" href="/logo.png">
+</head>
+<body>
+
+  <!-- Background Atmosphere -->
+  <div class="bg-canvas">
+    <div class="bg-overlay"></div>
+    <div class="bg-penguin-glow"></div>
+    <img src="/tux-bg.png" alt="Tux" class="bg-penguin-img">
+  </div>
+
+  <div id="app" class="app-container">
+
+    <!-- ======================================================== -->
+    <!-- LOGIN VIEW -->
+    <!-- ======================================================== -->
+    <div id="login-view" class="view-panel active">
+      <div class="login-card glassmorphism">
+        
+        <div class="login-mascot-container">
+          <div class="mascot-halo"></div>
+          <img src="/logo.png" alt="SPY Tux Mascot" class="login-mascot-img" id="login-mascot">
+        </div>
+
+        <div class="login-header">
+          <div class="badge-spy">
+            <span class="pulse-dot"></span> SPY CORE • ACCESS CODE: 11858077
+          </div>
+          <h1 class="brand-spy-title">SPY</h1>
+          <p class="subtitle">Stealth Proxy Gateway • Access Code System • 3-Day Expiry</p>
+        </div>
+
+        <!-- Login / Register Switcher -->
+        <div class="auth-switcher">
+          <button type="button" class="auth-toggle-btn active" id="btn-toggle-login">Operator Login</button>
+          <button type="button" class="auth-toggle-btn" id="btn-toggle-register">New User (Access Code)</button>
+          <button type="button" class="auth-toggle-btn" id="btn-toggle-status">Check Status</button>
+        </div>
+
+        <!-- Form 1: Operator Sign In -->
+        <form id="login-form" class="login-form">
+          <div id="login-error" class="alert-box error hidden"></div>
+
+          <div class="input-group">
+            <label for="login-username">Open API Key or Operator</label>
+            <div class="input-wrapper">
+              <input type="text" id="login-username" placeholder="spy_... or username" required autocomplete="username">
+            </div>
+          </div>
+
+          <div class="input-group" id="group-login-password">
+            <label for="login-password">Password / Secret</label>
+            <div class="input-wrapper">
+              <input type="password" id="login-password" placeholder="Leave empty if using Open API Key" autocomplete="current-password">
+            </div>
+          </div>
+
+          <button type="submit" class="btn btn-primary btn-block" id="login-btn">
+            <span>Authenticate</span>
+          </button>
+        </form>
+
+        <!-- Form 2: New User Registration with Access Code 11858077 -->
+        <form id="access-register-form" class="login-form hidden">
+          <div id="register-msg" class="alert-box hidden"></div>
+
+          <div class="input-group">
+            <label for="reg-access-code">Access Code</label>
+            <div class="input-wrapper">
+              <input type="text" id="reg-access-code" value="11858077" placeholder="Enter Access Code" required>
+            </div>
+            <small style="font-size: 0.72rem; color: var(--text-dim); display: block; margin-top: 4px;">
+              Valid code: 11858077 (Grants 3 Days Access)
+            </small>
+          </div>
+
+          <div class="input-group">
+            <label for="reg-username">Choose Proxy Username</label>
+            <div class="input-wrapper">
+              <input type="text" id="reg-username" placeholder="e.g. phone_user or myclient" required pattern="^[a-zA-Z0-9_-]{3,24}$">
+            </div>
+          </div>
+
+          <div class="input-group">
+            <label for="reg-password">Choose Proxy Password</label>
+            <div class="input-wrapper">
+              <input type="password" id="reg-password" placeholder="Choose a password" required minlength="4">
+            </div>
+          </div>
+
+          <div style="font-size: 0.75rem; color: var(--text-muted); margin-bottom: 1rem; line-height: 1.4;">
+            Notice: Proxy access expires automatically in <strong>3 Days</strong>. After 3 days, proxy disables and user must contact Admin.
+          </div>
+
+          <button type="submit" class="btn btn-primary btn-block" id="btn-submit-reg">
+            <span>Activate 3-Day Proxy Access</span>
+          </button>
+        </form>
+
+        <!-- Form 3: Check Expiration Status -->
+        <form id="check-status-form" class="login-form hidden">
+          <div id="check-status-msg" class="alert-box hidden"></div>
+
+          <div class="input-group">
+            <label for="check-username">Enter Your Username</label>
+            <div class="input-wrapper">
+              <input type="text" id="check-username" placeholder="Username to check" required>
+            </div>
+          </div>
+
+          <button type="submit" class="btn btn-secondary btn-block">
+            <span>Verify Status & Expiration</span>
+          </button>
+        </form>
+
+        <div class="login-footer">
+          <div class="network-tags">
+            <span class="tag">Port 3128</span>
+            <span class="tag">Access Code: 11858077</span>
+            <span class="tag">3-Day Expiry</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ======================================================== -->
+    <!-- DASHBOARD VIEW -->
+    <!-- ======================================================== -->
+    <div id="dashboard-view" class="view-panel">
+      
+      <!-- Top Navigation -->
+      <header class="top-nav">
+        <div class="nav-brand">
+          <div class="brand-logo-wrap">
+            <img src="/logo.png" alt="SPY" class="nav-tux-logo">
+          </div>
+          <div class="brand-text">
+            <h2>SPY <span class="badge-sub">CORE</span></h2>
+            <div class="status-indicator">
+              <span class="pulse-dot"></span>
+              <span id="nav-server-status">Squid Online • Port 3128</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Center Pills -->
+        <div class="nav-badges">
+          <div class="nav-pill" id="pill-ip" title="Click to copy IP">
+            <span class="pill-label">Public IP</span>
+            <span class="pill-val mono" id="val-public-ip">172.238.221.236</span>
+          </div>
+          <div class="nav-pill" id="pill-tailscale" title="Tailscale IP">
+            <span class="pill-label">Tailscale</span>
+            <span class="pill-val mono" id="val-tailscale-ip">100.87.92.72</span>
+          </div>
+          <div class="nav-pill" id="pill-cf" title="Cloudflare Tunnel Status">
+            <span class="pill-label">Tunnel</span>
+            <span class="pill-val" id="val-cf-status">Connected</span>
+          </div>
+        </div>
+
+        <!-- User Controls -->
+        <div class="nav-actions">
+          <div class="current-user-tag">
+            <span id="nav-username">operator</span>
+          </div>
+          <button class="btn btn-secondary btn-sm" id="btn-restart-proxy" title="Restart Squid Proxy">
+            <span>Restart</span>
+          </button>
+          <button class="btn btn-outline btn-sm" id="btn-logout">
+            <span>Logout</span>
+          </button>
+        </div>
+      </header>
+
+      <!-- Navigation Tabs -->
+      <div class="tabs-bar">
+        <button class="tab-btn active" data-tab="tab-overview">Overview</button>
+        <button class="tab-btn" data-tab="tab-console">Simple Console</button>
+        <button class="tab-btn" data-tab="tab-api-keys">Open API Keys (<span id="keys-tab-badge">1</span>)</button>
+        <button class="tab-btn" data-tab="tab-users">Proxy Users (<span id="user-tab-badge">0</span>)</button>
+        <button class="tab-btn" data-tab="tab-tailscale">Tailscale Peers (<span id="tailscale-tab-badge">0</span>)</button>
+        <button class="tab-btn" data-tab="tab-certs">Certs DB (<span id="certs-tab-badge">0</span>)</button>
+        <button class="tab-btn" data-tab="tab-logs">Traffic Logs</button>
+      </div>
+
+      <!-- Main Content -->
+      <main class="dashboard-content">
+
+        <!-- TAB 1: OVERVIEW -->
+        <section id="tab-overview" class="tab-content active">
+          
+          <!-- Cloudflare Live Alert Banner -->
+          <div class="cf-banner" id="cf-banner-box">
+            <div class="cf-banner-icon">
+              <svg viewBox="0 0 24 24" fill="currentColor"><path d="M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.35 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96z"/></svg>
+            </div>
+            <div class="cf-banner-details">
+              <div class="cf-banner-title">Cloudflare Live Public Tunnel</div>
+              <div class="cf-banner-sub">Worldwide encrypted HTTPS endpoint</div>
+              <div class="cf-link-wrap">
+                <a href="#" target="_blank" id="cf-live-url" class="cf-url-link">Initializing Tunnel...</a>
+                <button class="btn btn-xs btn-outline" id="btn-copy-cf-url">Copy Link</button>
+              </div>
+            </div>
+            <div class="cf-banner-badge">
+              <span class="badge-tag">Cloudflare Tunnel</span>
+            </div>
+          </div>
+
+          <!-- Status Grid -->
+          <div class="stats-grid">
+            <div class="stat-card">
+              <div class="stat-header">
+                <span class="stat-label">Proxy Engine</span>
+                <span class="status-pill">Active</span>
+              </div>
+              <div class="stat-val">Squid 6.14</div>
+              <div class="stat-sub">Anonymity: Elite L1 (Zero Headers Leaked)</div>
+            </div>
+
+            <div class="stat-card">
+              <div class="stat-header">
+                <span class="stat-label">Gateway</span>
+                <span class="status-pill">USA</span>
+              </div>
+              <div class="stat-val" id="stat-geo-city">Miami, FL</div>
+              <div class="stat-sub" id="stat-geo-country">United States</div>
+            </div>
+
+            <div class="stat-card">
+              <div class="stat-header">
+                <span class="stat-label">Port</span>
+                <span class="status-pill">TCP</span>
+              </div>
+              <div class="stat-val mono">3128</div>
+              <div class="stat-sub">HTTP & HTTPS CONNECT</div>
+            </div>
+
+            <div class="stat-card">
+              <div class="stat-header">
+                <span class="stat-label">Tailscale Node</span>
+                <span class="status-pill">Active</span>
+              </div>
+              <div class="stat-val mono" id="stat-ts-ip">100.87.92.72</div>
+              <div class="stat-sub" id="stat-ts-host">technoblade</div>
+            </div>
+          </div>
+
+          <!-- Quick Connect Guides -->
+          <div class="card mt-6">
+            <div class="card-header">
+              <h3>Connection Setup</h3>
+              <p>Configure any client device to route through SPY Proxy</p>
+            </div>
+
+            <div class="guides-tabs">
+              <div class="device-pill active" data-guide="guide-browser">Browser</div>
+              <div class="device-pill" data-guide="guide-apple">Apple iOS / macOS</div>
+              <div class="device-pill" data-guide="guide-android">Android</div>
+              <div class="device-pill" data-guide="guide-curl">cURL / Open API</div>
+            </div>
+
+            <div class="guide-box" id="guide-browser">
+              <h4>Web Browser Configuration</h4>
+              <p>1. Open Browser Network Settings -> Manual Proxy.</p>
+              <div class="config-table">
+                <div class="config-row"><span>Wi-Fi LAN IP (Phone / Local Devices):</span><code class="copyable" onclick="copyText('192.168.1.158')">192.168.1.158</code></div>
+                <div class="config-row"><span>Tailscale Mesh IP (Remote Devices):</span><code class="copyable" onclick="copyText('100.87.92.72')">100.87.92.72</code></div>
+                <div class="config-row"><span>Proxy Port:</span><code class="copyable" onclick="copyText('3128')">3128</code></div>
+                <div class="config-row"><span>Client Egress IP (Visible to Websites):</span><code class="copyable" onclick="copyText('172.238.221.236')">172.238.221.236 (Linode Miami, USA)</code></div>
+              </div>
+            </div>
+
+            <div class="guide-box hidden" id="guide-apple">
+              <h4>Apple iOS & macOS Setup</h4>
+              <p>Settings -> Wi-Fi -> Tap network (i) -> HTTP Proxy -> Manual.</p>
+              <div class="config-table">
+                <div class="config-row"><span>Same Wi-Fi Server:</span><code class="copyable">192.168.1.158</code></div>
+                <div class="config-row"><span>Tailscale Mesh Server:</span><code class="copyable">100.87.92.72</code></div>
+                <div class="config-row"><span>Port:</span><code class="copyable">3128</code></div>
+                <div class="config-row"><span>Authentication:</span><span>Turn ON</span></div>
+                <div class="config-row"><span>Username / Password:</span><span>cantroll / proxy2024</span></div>
+              </div>
+            </div>
+
+            <div class="guide-box hidden" id="guide-android">
+              <h4>Android Setup</h4>
+              <p>Wi-Fi Settings -> Long-press network -> Modify -> Advanced -> Proxy -> Manual.</p>
+              <div class="config-table">
+                <div class="config-row"><span>Same Wi-Fi Host:</span><code class="copyable">192.168.1.158</code></div>
+                <div class="config-row"><span>Tailscale Mesh Host:</span><code class="copyable">100.87.92.72</code></div>
+                <div class="config-row"><span>Proxy Port:</span><code class="copyable">3128</code></div>
+                <div class="config-row"><span>Bypass:</span><span>leave blank</span></div>
+              </div>
+            </div>
+
+            <div class="guide-box hidden" id="guide-curl">
+              <h4>cURL Command Line</h4>
+              <pre class="code-block"><code id="code-curl-cmd">curl -x http://cantroll:proxy2024@172.238.221.236:3128 https://ifconfig.me</code></pre>
+              <button class="btn btn-secondary btn-sm" onclick="copyCurlCmd()">Copy Command</button>
+            </div>
+          </div>
+        </section>
+
+        <!-- TAB 2: SIMPLE CONSOLE -->
+        <section id="tab-console" class="tab-content">
+          <div class="card">
+            <div class="card-header flex-between">
+              <div>
+                <h3>Simple Console</h3>
+                <p>Interactive operator terminal for monitoring and maintenance</p>
+              </div>
+              <button class="btn btn-secondary btn-sm" id="btn-clear-console">Clear Screen</button>
+            </div>
+
+            <div class="terminal-window">
+              <div class="terminal-header">
+                <div class="terminal-controls">
+                  <span class="term-dot"></span>
+                  <span class="term-dot"></span>
+                  <span class="term-dot"></span>
+                </div>
+                <div class="terminal-title">spy@operator ~ terminal</div>
+                <div></div>
+              </div>
+
+              <div class="terminal-body" id="terminal-body">SPY Terminal v2.0 (macOS/iOS Edition)
+Type 'help' to view available diagnostic commands.
+Type 'status' to inspect proxy service health.
+Type 'test' to verify external egress IP.
+Type 'logs' to view latest streaming traffic.
+-----------------------------------------------------------------
+</div>
+
+              <div class="terminal-prompt-bar">
+                <span class="term-prompt-label">spy@operator:~$</span>
+                <input type="text" class="terminal-input" id="terminal-input" placeholder="Type command (e.g. status, test, logs, help)..." autocomplete="off" autofocus>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- TAB 3: OPEN API KEYS -->
+        <section id="tab-api-keys" class="tab-content">
+          <div class="split-layout">
+            <div class="card">
+              <div class="card-header">
+                <h3>Generate Open API Key</h3>
+                <p>Create programmatic tokens for automation & SDK access</p>
+              </div>
+
+              <form id="create-key-form">
+                <div id="key-msg" class="alert-box hidden"></div>
+                <div class="input-group">
+                  <label for="key-name">Key Label / Description</label>
+                  <input type="text" id="key-name" placeholder="e.g. Production Ingest or Laptop Client" required>
+                </div>
+                <button type="submit" class="btn btn-primary btn-block">Generate Key</button>
+              </form>
+
+              <div class="mt-4" style="font-size: 0.8rem; color: var(--text-muted); line-height: 1.5;">
+                Authenticate via header:
+                <pre class="code-block" style="margin-top: 0.5rem;"><code>X-API-Key: spy_...</code></pre>
+              </div>
+            </div>
+
+            <div class="card">
+              <div class="card-header flex-between">
+                <div>
+                  <h3>Active Open API Keys</h3>
+                  <p>Stored securely in SQLite database</p>
+                </div>
+                <button class="btn btn-secondary btn-sm" id="btn-refresh-keys">Refresh</button>
+              </div>
+
+              <div class="table-container">
+                <table class="modern-table">
+                  <thead>
+                    <tr>
+                      <th>Label</th>
+                      <th>API Key</th>
+                      <th>Created</th>
+                      <th>Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody id="keys-table-body">
+                    <tr><td colspan="4" class="text-center text-muted">Loading API Keys...</td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- TAB 4: PROXY USERS -->
+        <section id="tab-users" class="tab-content">
+          <div class="split-layout">
+            <div class="card">
+              <div class="card-header">
+                <h3>Add Proxy User</h3>
+                <p>Register credentials in Squid proxy database</p>
+              </div>
+
+              <form id="add-user-form">
+                <div id="add-user-msg" class="alert-box hidden"></div>
+
+                <div class="input-group">
+                  <label for="new-username">Username</label>
+                  <input type="text" id="new-username" placeholder="e.g. musa or laptop2" required pattern="^[a-zA-Z0-9_-]+$">
+                </div>
+
+                <div class="input-group">
+                  <label for="new-password">Password</label>
+                  <input type="password" id="new-password" placeholder="Enter password" required minlength="4">
+                </div>
+
+                <button type="submit" class="btn btn-primary btn-block" id="btn-save-user">
+                  <span>Save User</span>
+                </button>
+              </form>
+            </div>
+
+            <div class="card">
+              <div class="card-header flex-between">
+                <div>
+                  <h3>Registered Proxy Users</h3>
+                  <p>Credentials in /etc/squid/proxy_users</p>
+                </div>
+                <button class="btn btn-secondary btn-sm" id="btn-refresh-users">Refresh</button>
+              </div>
+
+              <div class="table-container">
+                <table class="modern-table">
+                  <thead>
+                    <tr>
+                      <th>#</th>
+                      <th>Username</th>
+                      <th>Access Code</th>
+                      <th>Expiration / Remaining</th>
+                      <th>Status</th>
+                      <th>Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody id="users-table-body">
+                    <tr><td colspan="6" class="text-center text-muted">Loading proxy users...</td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- TAB 5: TAILSCALE PEERS -->
+        <section id="tab-tailscale" class="tab-content">
+          <div class="card">
+            <div class="card-header flex-between">
+              <div>
+                <h3>Tailscale Network Peers</h3>
+                <p>Mesh nodes discovered via Tailscale daemon</p>
+              </div>
+              <button class="btn btn-secondary btn-sm" id="btn-refresh-tailscale">Refresh</button>
+            </div>
+
+            <div class="table-container">
+              <table class="modern-table">
+                <thead>
+                  <tr>
+                    <th>Device</th>
+                    <th>OS</th>
+                    <th>Tailscale IP</th>
+                    <th>User</th>
+                    <th>Status</th>
+                  </tr>
+                </thead>
+                <tbody id="tailscale-table-body">
+                  <tr><td colspan="5" class="text-center text-muted">Loading peers...</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <!-- TAB 6: CERTS DB -->
+        <section id="tab-certs" class="tab-content">
+          <div class="card">
+            <div class="card-header flex-between">
+              <div>
+                <h3>Network Certificates Vault</h3>
+                <p>Persistent SSL/TLS & Root CA storage in SQLite DB (/data/proxy.db)</p>
+              </div>
+              <button class="btn btn-secondary btn-sm" id="btn-refresh-certs">Refresh</button>
+            </div>
+
+            <div class="table-container">
+              <table class="modern-table">
+                <thead>
+                  <tr>
+                    <th>Name</th>
+                    <th>Type</th>
+                    <th>SHA-256 Fingerprint</th>
+                    <th>Expires</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="certs-table-body">
+                  <tr><td colspan="5" class="text-center text-muted">Loading certificates...</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <!-- TAB 7: TRAFFIC LOGS -->
+        <section id="tab-logs" class="tab-content">
+          <div class="card">
+            <div class="card-header flex-between flex-wrap gap-4">
+              <div>
+                <h3>Traffic Intelligence Logs</h3>
+                <p>Persistent SQLite stream of proxy browsing records</p>
+              </div>
+
+              <div class="log-controls">
+                <div class="search-input-wrap">
+                  <input type="text" id="log-search-input" placeholder="Search domain, IP, or user...">
+                </div>
+
+                <div class="live-toggle-wrap">
+                  <label class="toggle-switch">
+                    <input type="checkbox" id="auto-refresh-toggle" checked>
+                    <span class="slider"></span>
+                  </label>
+                  <span>Auto Refresh</span>
+                </div>
+
+                <button class="btn btn-secondary btn-sm" id="btn-refresh-logs">Refresh</button>
+              </div>
+            </div>
+
+            <div class="log-stats-bar">
+              <div class="log-stat-item">
+                <span class="lbl">Total:</span>
+                <span class="val" id="log-count-val">0 requests</span>
+              </div>
+              <div class="log-stat-item">
+                <span class="lbl">Egress:</span>
+                <span class="val">172.238.221.236:3128</span>
+              </div>
+              <div class="log-stat-item">
+                <span class="lbl">Security:</span>
+                <span class="val">Zero Leaks</span>
+              </div>
+            </div>
+
+            <div class="table-container logs-table-container">
+              <table class="modern-table logs-table">
+                <thead>
+                  <tr>
+                    <th>Time</th>
+                    <th>User</th>
+                    <th>Client IP</th>
+                    <th>Method</th>
+                    <th>Domain / URL</th>
+                    <th>HTTP Status</th>
+                    <th>Size</th>
+                  </tr>
+                </thead>
+                <tbody id="logs-table-body">
+                  <tr><td colspan="7" class="text-center text-muted">Listening for traffic...</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+      </main>
+
+    </div>
+
+  </div>
+
+  <div id="toast" class="toast hidden"></div>
+
+  <script src="/app.js"></script>
+</body>
+</html>
